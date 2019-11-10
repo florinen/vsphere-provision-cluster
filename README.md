@@ -1,2 +1,2 @@
-# vsphere-provision-cluster
-Provisioning Kubernetes cluster in Vmware vSphere
+# vm-node
+kubernetes terraform
