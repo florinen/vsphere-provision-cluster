@@ -12,7 +12,7 @@ Create one Centos 7 vm. After creation is finished, login and do the following:
 
  4. shutdown vm and convert it to Template
 
-On the local machine where you run terraform script you must have "jq" installed. It is necessary for getting the kubernetes token and certhash that was generated when running ‘kubeadm init’. The 'kubeadm_init_info.sh' script needs the "jq" program, so we need to make sure it is installed on the machine running the terraform code. These information will be needed when it comes to add new nodes in the cluster.
+On the local machine where you run terraform script you must have "jq" installed. It is necessary for getting the kubernetes token and certhash that was generated when running ‘kubeadm init’. The 'kubeadm_init_info.sh' script also needs the "jq" program. These information will be needed when it comes to add new nodes in the cluster.
 
 To create the clusrer run:
 ```
