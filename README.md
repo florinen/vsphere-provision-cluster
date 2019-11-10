@@ -1,4 +1,18 @@
-# Provisioning Kubernetes cluster in vSphere 
+# Provisioning Kubernetes cluster in vSphere 6.7
+
+## Prerequisites:
+
+Create one Centos 7 vm. After creation is finished, login and do the following:
+
+ 1. yum install -y open-vm-tools # or you can manualy install from vmware install disk
+
+ 2. yum install -y perl # without this package when VM starts network will be in disconnected state.
+
+ 3. you can create a user and generate ssh keys for the user if needed
+
+ 4. shutdown vm and convert it to Template
+
+On the local machine where you run terraform script you must have "jq" installed. It is necessary for getting the kubernetes token and certhash that was generated when running ‘kubeadm init’. The 'kubeadm_init_info.sh' script also needs the "jq" program. These information will be needed when it comes to add new nodes in the cluster.
 
 To create the clusrer run:
 ```
