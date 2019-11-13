@@ -112,7 +112,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config",
       "setenforce 0",
     ## Install Docker
-      "yum install yum-utils device-mapper-persistent-data lvm2 -y",
+      "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
@@ -179,6 +179,8 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/*sh",
+    // Install packages
+      "yum install -y  jq vim unzip wget",
       "sudo yum install -y nfs-utils kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
       "sudo systemctl enable kubelet && sudo systemctl start kubelet",
       "sudo cat <<EOF >  /etc/sysctl.d/k8s.conf \nnet.bridge.bridge-nf-call-ip6tables = 1 \nnet.bridge.bridge-nf-call-iptables = 1",
