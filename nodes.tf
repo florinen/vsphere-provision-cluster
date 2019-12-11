@@ -166,7 +166,7 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir /nfs/shares -p",
-      "sudo echo '${var.nfs_server}:/mnt/Storage/Kube-data/new-cluster-env /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
+      "sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
       "sudo yum install -y kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
       "sudo systemctl enable kubelet",
       "sudo systemctl start kubelet",
