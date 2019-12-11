@@ -40,18 +40,18 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = "${data.vsphere_datacenter.template_datacenter.id}"
 }
 resource "vsphere_folder" "folder" {
-  path          = "${var.virtual_machine_template["folder"]}"
-  type          = "vm"
-  tags             = ["${vsphere_tag.environment.id}",
-                      "${vsphere_tag.region.id}",
-                      ]
+  path = "${var.virtual_machine_template["folder"]}"
+  type = "vm"
+  tags = ["${vsphere_tag.environment.id}",
+          "${vsphere_tag.region.id}",
+  ]
   datacenter_id = "${data.vsphere_datacenter.template_datacenter.id}"
 }
 resource "vsphere_resource_pool" "vm_resource_pool" {
-  name                    = "${var.virtual_machine_kubernetes_node["resource_pool"]}"
-  tags             = ["${vsphere_tag.environment.id}",
-                      "${vsphere_tag.region.id}",
-                      ]
+  name = "${var.virtual_machine_kubernetes_node["resource_pool"]}"
+  tags = ["${vsphere_tag.environment.id}",
+          "${vsphere_tag.region.id}",
+  ]
   parent_resource_pool_id = "${data.vsphere_compute_cluster.vm_cluster.resource_pool_id}"
 }
 
@@ -59,42 +59,42 @@ resource "vsphere_resource_pool" "vm_resource_pool" {
 ##  Tagging Info   ##
 #++++++++++++++++++++
 resource "vsphere_tag_category" "environment" {
-    name        = "${var.vsphere_tag_category}"
-    cardinality = "SINGLE"
-    associable_types = [
-        "VirtualMachine",
-        "Datacenter",
-        "ResourcePool",
-        "Folder",
-    ]
+  name        = "${var.vsphere_tag_category}"
+  cardinality = "SINGLE"
+  associable_types = [
+    "VirtualMachine",
+    "Datacenter",
+    "ResourcePool",
+    "Folder",
+  ]
 }
 resource "vsphere_tag_category" "region" {
-    name        = "${var.vsphere_region_catergory}"
-    cardinality = "SINGLE"
-    associable_types = [
-        "VirtualMachine",
-        "Datacenter",
-        "ResourcePool",
-        "Folder",
-    ]
+  name        = "${var.vsphere_region_catergory}"
+  cardinality = "SINGLE"
+  associable_types = [
+    "VirtualMachine",
+    "Datacenter",
+    "ResourcePool",
+    "Folder",
+  ]
 }
 resource "vsphere_tag_category" "master" {
-    name        = "${var.vsphere_m_catergory}"
-    cardinality = "SINGLE"
-    associable_types = [
-        "VirtualMachine",
-        "Datacenter",
-        "Folder",
-    ]
+  name        = "${var.vsphere_m_catergory}"
+  cardinality = "SINGLE"
+  associable_types = [
+    "VirtualMachine",
+    "Datacenter",
+    "Folder",
+  ]
 }
 resource "vsphere_tag_category" "worker" {
-    name        = "${var.vsphere_w_catergory}"
-    cardinality = "SINGLE"
-    associable_types = [
-        "VirtualMachine",
-        "Datacenter",
-        "Folder",
-    ]
+  name        = "${var.vsphere_w_catergory}"
+  cardinality = "SINGLE"
+  associable_types = [
+    "VirtualMachine",
+    "Datacenter",
+    "Folder",
+  ]
 }
 
 #+++++++++

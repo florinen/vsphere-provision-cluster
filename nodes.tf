@@ -112,9 +112,9 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       ## Install some packages
       "yum install -y vim nfs-utils",
       ## Install Docker
-      "yum install yum-utils device-mapper-persistent-data lvm2 -y",
+      "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
-      "yum update -y && yum install docker-ce-18.06.1.ce -y",
+      "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
 
     ]

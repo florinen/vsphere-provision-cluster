@@ -1,6 +1,6 @@
 resource "null_resource" "generate-sshkey" {
   provisioner "local-exec" {
-    command = "yes y | ssh-keygen -b 4096 -t rsa -C 'new-cluster-env' -N '' -f ${var.virtual_machine_kubernetes_controller["private_key"]}"
+    command = "yes y | ssh-keygen -b 4096 -t rsa -C 'prod-env' -N '' -f ${var.virtual_machine_kubernetes_controller["private_key"]}"
   }
 }
 

@@ -115,7 +115,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config",
       "setenforce 0",
       ## Install Docker
-      "yum install yum-utils device-mapper-persistent-data lvm2 -y",
+      "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
@@ -181,8 +181,11 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
 
   provisioner "remote-exec" {
     inline = [
+  ## Mount NFS
       "sudo mkdir /nfs/shares -p",
       "sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
+  ## Install pakages    
+      "yum install -y  jq vim unzip wget",
       "chmod +x /tmp/*sh",
       "sudo yum install -y nfs-utils kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
       "sudo systemctl enable kubelet && sudo systemctl start kubelet",
