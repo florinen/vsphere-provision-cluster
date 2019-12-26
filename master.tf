@@ -202,8 +202,8 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
-      "echo '--> install flannel <--'",
-      "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
+      "echo '--> install Network <--'",
+      
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
 
     ]
