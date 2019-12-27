@@ -11,8 +11,9 @@ provider "external" {
 provider "null" {
   version = "~> 2.1"
 }
-
-
+provider "template" {
+  version = "~> 2.1"
+}
 data "vsphere_datacenter" "template_datacenter" {
   name = "${var.virtual_machine_template["datacenter"]}"
 }
@@ -43,16 +44,29 @@ resource "vsphere_folder" "folder" {
   path = "${var.virtual_machine_template["folder"]}"
   type = "vm"
   tags = ["${vsphere_tag.environment.id}",
-          "${vsphere_tag.region.id}",
+    "${vsphere_tag.region.id}",
   ]
   datacenter_id = "${data.vsphere_datacenter.template_datacenter.id}"
 }
 resource "vsphere_resource_pool" "vm_resource_pool" {
   name = "${var.virtual_machine_kubernetes_node["resource_pool"]}"
   tags = ["${vsphere_tag.environment.id}",
-          "${vsphere_tag.region.id}",
+    "${vsphere_tag.region.id}",
   ]
   parent_resource_pool_id = "${data.vsphere_compute_cluster.vm_cluster.resource_pool_id}"
+}
+##  Files and Scripts  ##
+data "template_file" "calico_conf" {
+  template = "${file("scripts/calico_conf.tpl")}"
+}
+data "template_file" "daemon" {
+  template = "${file("scripts/daemon.tpl")}"
+}
+data "template_file" "kube_repo" {
+  template = "${file("scripts/kubernetes.tpl")}"
+}
+data "template_file" "k8s_conf" {
+  template = "${file("scripts/k8s_conf.tpl")}"
 }
 
 #++++++++++++++++++++

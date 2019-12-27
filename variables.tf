@@ -104,17 +104,19 @@ variable "virtual_machine_kubernetes_node" {
     hosts  = ""
   }
 }
-variable "Flannel" {
-  description = "Install Flannel Network"
-  default     =[ "echo '--> Flannel network is currently installed <--'",
-                 "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
-                 ] 
-}
+
 variable "flannel_cidr" {
   description = "CIDR IP address"
   default     =  "10.244.0.0/16"
 }
-
+variable "calico_cidr" {
+  description = "CIDR IP address"
+  default     =  "192.168.0.0/16"
+}
+variable "custom-calico_cidr" {
+  description = "CIDR IP address"
+  default     =  "172.16.0.0/16"
+}
 
 variable "k_version" {
   description = "Kebernetes version"

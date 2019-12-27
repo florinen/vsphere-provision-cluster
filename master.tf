@@ -11,10 +11,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
   scsi_type        = "${data.vsphere_virtual_machine.template.scsi_type}"
   enable_disk_uuid = "true"
   annotation       = "Managed by Terraform"
-  tags             = ["${vsphere_tag.environment.id}",
-                      "${vsphere_tag.region.id}",
-                      "${vsphere_tag.master.id}",
-                      ]
+  tags = ["${vsphere_tag.environment.id}",
+    "${vsphere_tag.region.id}",
+    "${vsphere_tag.master.id}",
+  ]
   network_interface {
     network_id   = "${data.vsphere_network.vm_network.id}"
     adapter_type = "${data.vsphere_virtual_machine.template.network_interface_types[0]}"
@@ -114,39 +114,31 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "systemctl stop firewalld",
       "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config",
       "setenforce 0",
+      "modprobe br_netfilter",
       ## Install Docker
       "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
-
-    ]
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
-
-  provisioner "file" {
-    source      = "./scripts/daemon.json"
-    destination = "/etc/docker/daemon.json"
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
-  provisioner "remote-exec" {
-    inline = [
+      "sudo echo \"${data.template_file.daemon.rendered}\" > /etc/docker/daemon.json",
       "sudo mkdir -p /etc/systemd/system/docker.service.d",
       "sudo systemctl daemon-reload",
-      "sudo systemctl restart docker",
-      "sudo systemctl enable docker",
+      "sudo systemctl enable --now docker",
+      # "sudo systemctl restart docker",
+      # "sudo systemctl enable docker",
+    ]
+
+    connection {
+      host        = "${element(self.*.default_ip_address, count.index)}"
+      type        = "${var.virtual_machine_template["connection_type"]}"
+      user        = "${var.virtual_machine_template["connection_user"]}"
+      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+    }
+  }
+provisioner "remote-exec" {
+    inline = [ 
+          "sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
+          "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
     ]
     connection {
       host        = "${element(self.*.default_ip_address, count.index)}"
@@ -155,18 +147,20 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-
-  provisioner "file" {
-    source      = "./scripts/kubernetes.repo"
-    destination = "/etc/yum.repos.d/kubernetes.repo"
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
+   
+  # provisioner "remote-exec" {
+  #   inline = [
+      
+  #   ]
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   }
+  # }
+  
+   
   provisioner "file" {
     source      = "./scripts/kubeadm_init_info.sh"
     destination = "/tmp/kubeadm_init_info.sh"
@@ -181,29 +175,33 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
 
   provisioner "remote-exec" {
     inline = [
-  ## Mount NFS
+      ## Mount NFS
       "sudo mkdir /nfs/shares -p",
-      "sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
-  ## Install pakages    
+      "sudo echo '${var.nfs_server}:/mnt/Storage/Kube-data  /nfs/shares  nfs       rw,sync,hard,intr     0 0' >> /etc/fstab",
+      ## Install pakages    
       "yum install -y  jq vim unzip wget",
       "chmod +x /tmp/*sh",
       "sudo yum install -y nfs-utils kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
-      "sudo systemctl enable kubelet && sudo systemctl start kubelet",
-      "sudo cat <<EOF >  /etc/sysctl.d/k8s.conf \nnet.bridge.bridge-nf-call-ip6tables = 1 \nnet.bridge.bridge-nf-call-iptables = 1",
-      "EOF",
+      "systemctl enable --now kubelet",     
+      #"sudo systemctl enable kubelet && sudo systemctl start kubelet",
+      "sudo echo \"${data.template_file.k8s_conf.rendered}\" > /etc/sysctl.d/k8s.conf",
       "sudo sysctl --system",
       "sudo mount -av",
       "IPADDRESS=$(ip address show dev  ens192 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1)",
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
       "echo '--> run 'kubeadm init' <--'",
-      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=10.244.0.0/16 > /tmp/kubeadm_init_output.txt",
+      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.flannel_cidr} > /tmp/kubeadm_init_output.txt",
       "echo '--> setup $HOME/.kube/config <--'",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+      ## Network ##
       "echo '--> install Network <--'",
-      
+      "echo '--> Flannel network is currently installed <--'",
+      "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
+      #"echo '--> Calico network is currently installed <--'",
+      #"kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
 
     ]
