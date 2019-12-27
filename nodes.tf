@@ -166,14 +166,14 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir /nfs/shares -p",
-      "sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
+      #"sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
       "sudo yum install -y kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
       "sudo systemctl enable kubelet",
       "sudo systemctl start kubelet",
       "sudo cat <<EOF >  /etc/sysctl.d/k8s.conf \nnet.bridge.bridge-nf-call-ip6tables = 1 \nnet.bridge.bridge-nf-call-iptables = 1",
       "EOF",
       "sudo sysctl --system",
-      "sudo mount -av",
+      #"sudo mount -av",
 
     ]
     connection {

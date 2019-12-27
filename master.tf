@@ -183,7 +183,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     inline = [
   ## Mount NFS
       "sudo mkdir /nfs/shares -p",
-      "sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
+      #"sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
   ## Install pakages    
       "yum install -y  jq vim unzip wget",
       "chmod +x /tmp/*sh",
@@ -192,7 +192,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sudo cat <<EOF >  /etc/sysctl.d/k8s.conf \nnet.bridge.bridge-nf-call-ip6tables = 1 \nnet.bridge.bridge-nf-call-iptables = 1",
       "EOF",
       "sudo sysctl --system",
-      "sudo mount -av",
+      #"sudo mount -av",
       "IPADDRESS=$(ip address show dev  ens192 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1)",
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
@@ -203,7 +203,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
       "echo '--> install flannel <--'",
-      "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
+      "sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
 
     ]
