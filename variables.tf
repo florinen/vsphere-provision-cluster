@@ -104,6 +104,20 @@ variable "virtual_machine_kubernetes_node" {
     hosts  = ""
   }
 }
+
+variable "flannel_cidr" {
+  description = "CIDR IP address"
+  default     =  "10.244.0.0/16"
+}
+variable "calico_cidr" {
+  description = "CIDR IP address"
+  default     =  "192.168.0.0/16"
+}
+variable "custom-calico_cidr" {
+  description = "CIDR IP address"
+  default     =  "172.16.0.0/16"
+}
+
 variable "k_version" {
   description = "Kebernetes version"
 }
