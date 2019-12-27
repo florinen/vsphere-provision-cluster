@@ -109,41 +109,24 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       "systemctl stop firewalld",
       "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config",
       "setenforce 0",
+      "modprobe br_netfilter",
       ## Install some packages
-      "yum install -y vim nfs-utils",
+      "yum install -y vim nfs-utils jq vim unzip wget",
       ## Install Docker
       "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
-
-    ]
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
-
-  provisioner "file" {
-    source      = "./scripts/daemon.json"
-    destination = "/etc/docker/daemon.json"
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
-
-  provisioner "remote-exec" {
-    inline = [
+      #"user_data = <<-EOT \n  echo \"${data.template_file.daemon.rendered}\" > /etc/docker/daemon.json  \n   EOT ",
+      "tee  /etc/docker/daemon.json <<EOF",
+      "${data.template_file.daemon.rendered}",
+      "EOF", 
+      #"sudo echo \\\"${data.template_file.daemon.rendered}\\\" > /etc/docker/daemon.json",
       "sudo mkdir -p /etc/systemd/system/docker.service.d",
       "sudo systemctl daemon-reload",
       "sudo systemctl restart docker",
       "sudo systemctl enable docker",
+
     ]
     connection {
       host        = "${element(self.*.default_ip_address, count.index)}"
@@ -152,10 +135,12 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-  provisioner "file" {
-    source      = "./scripts/kubernetes.repo"
-    destination = "/etc/yum.repos.d/kubernetes.repo"
 
+  provisioner "remote-exec" {
+    inline = [ 
+          "sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
+          "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
+    ]
     connection {
       host        = "${element(self.*.default_ip_address, count.index)}"
       type        = "${var.virtual_machine_template["connection_type"]}"
@@ -163,17 +148,29 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
+  # provisioner "remote-exec" {
+  #   inline = [
+      
+  #   ]
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   }
+  # }
+   
   provisioner "remote-exec" {
     inline = [
       "sudo mkdir /nfs/shares -p",
-      #"sudo echo '${var.nfs_server} /nfs/shares  nfs       rw,sync,hard,intr       0 0' >> /etc/fstab",
+      "sudo echo '${var.nfs_server}:/mnt/Storage/Kube-data  /nfs/shares  nfs       rw,sync,hard,intr     0 0' >> /etc/fstab",
       "sudo yum install -y kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
-      "sudo systemctl enable kubelet",
-      "sudo systemctl start kubelet",
-      "sudo cat <<EOF >  /etc/sysctl.d/k8s.conf \nnet.bridge.bridge-nf-call-ip6tables = 1 \nnet.bridge.bridge-nf-call-iptables = 1",
-      "EOF",
+      "systemctl enable --now kubelet",     
+      # "sudo systemctl enable kubelet",
+      # "sudo systemctl start kubelet",
+      "sudo echo \"${data.template_file.k8s_conf.rendered}\" > /etc/sysctl.d/k8s.conf",
       "sudo sysctl --system",
-      #"sudo mount -av",
+      "sudo mount -av",
 
     ]
     connection {
