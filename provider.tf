@@ -57,16 +57,16 @@ resource "vsphere_resource_pool" "vm_resource_pool" {
 }
 ##  Files and Scripts  ##
 data "template_file" "calico_conf" {
-  template = "${file("scripts/calico_conf.tpl")}"
+  template = "${file("${path.module}/scripts/calico_conf.tpl")}"
 }
 data "template_file" "daemon" {
-  template = "${file("scripts/daemon.tpl")}"
+  template = "${file("${path.module}/scripts/daemon.tpl")}"
 }
 data "template_file" "kube_repo" {
-  template = "${file("scripts/kubernetes.tpl")}"
+  template = "${file("${path.module}/scripts/kubernetes.tpl")}"
 }
 data "template_file" "k8s_conf" {
-  template = "${file("scripts/k8s_conf.tpl")}"
+  template = "${file("${path.module}/scripts/k8s_conf.tpl")}"
 }
 
 #++++++++++++++++++++
