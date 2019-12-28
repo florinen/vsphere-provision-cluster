@@ -117,7 +117,6 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
 
   provisioner "remote-exec" {
     inline = [ 
-          #"sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
           "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
     ]
     connection {
