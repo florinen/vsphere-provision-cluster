@@ -57,6 +57,13 @@ resource "vsphere_resource_pool" "vm_resource_pool" {
   parent_resource_pool_id = "${data.vsphere_compute_cluster.vm_cluster.resource_pool_id}"
 }
 ##  Files and Scripts  ##
+data "template_file" "setup_cluster_access" {
+  template = "${file("${path.module}/scripts/setup_cluster_access.sh")}"
+  vars = {
+    env_name = "${var.env_name}"
+  }
+}
+
 data "template_file" "authorized_keys" {
   template = "${file("${path.module}/authorized_keys.tpl")}"
 }
