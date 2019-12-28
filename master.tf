@@ -64,8 +64,11 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     inline = [
       "mkdir -p /root/.ssh/",
       "chmod 700 /root/.ssh",
-      "mv /tmp/authorized_keys /root/.ssh/authorized_keys",
-      "chmod 600 /root/.ssh/authorized_keys",
+      "mv /tmp/authorized_keys $HOME/.ssh/authorized_keys",
+      "tee -a $HOME/.ssh/authorized_keys <<EOF",
+      "${data.template_file.authorized_keys.rendered}",
+      "EOF",
+      "chmod 600 $HOME/.ssh/authorized_keys",
       "sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config",
       "service sshd restart"
     ]
@@ -77,37 +80,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       password = "${var.virtual_machine_template["connection_password"]}"
     }
   }
-
-
-  provisioner "file" {
-    source      = "${var.virtual_machine_kubernetes_controller["my_ssh_keys"]}"
-    destination = "/tmp/my_ssh_keys"
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "cat /tmp/my_ssh_keys >> $HOME/.ssh/authorized_keys",
-      "rm -f '/tmp/my_ssh_keys'",
-    ]
-
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-
-    }
-  }
   provisioner "remote-exec" {
 
     inline = [
+      ## Disable swap  
       "swapoff -a",
       "sudo sed -i '/swap/d' /etc/fstab",
       "systemctl disable firewalld",
@@ -115,6 +91,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config",
       "setenforce 0",
       "modprobe br_netfilter",
+
       ## Install Docker
       "yum install -y yum-utils device-mapper-persistent-data lvm2 epel-release",
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
@@ -122,12 +99,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "mkdir /etc/docker",
       "tee  /etc/docker/daemon.json <<EOF",
       "${data.template_file.daemon.rendered}",
-      "EOF", 
+      "EOF",
       "sudo mkdir -p /etc/systemd/system/docker.service.d",
       "sudo systemctl daemon-reload",
       "sudo systemctl enable --now docker",
-      # "sudo systemctl restart docker",
-      # "sudo systemctl enable docker",
     ]
 
     connection {
@@ -137,10 +112,9 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-provisioner "remote-exec" {
-    inline = [ 
-          "sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
-          "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
+  provisioner "remote-exec" {
+    inline = [
+      "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
     ]
     connection {
       host        = "${element(self.*.default_ip_address, count.index)}"
@@ -149,20 +123,7 @@ provisioner "remote-exec" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-   
-  # provisioner "remote-exec" {
-  #   inline = [
-      
-  #   ]
-  #   connection {
-  #     host        = "${element(self.*.default_ip_address, count.index)}"
-  #     type        = "${var.virtual_machine_template["connection_type"]}"
-  #     user        = "${var.virtual_machine_template["connection_user"]}"
-  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-  #   }
-  # }
-  
-   
+
   provisioner "file" {
     source      = "./scripts/kubeadm_init_info.sh"
     destination = "/tmp/kubeadm_init_info.sh"
@@ -180,16 +141,18 @@ provisioner "remote-exec" {
       ## Mount NFS
       "sudo mkdir /nfs/shares -p",
       "sudo echo '${var.nfs_server}:/mnt/Storage/Kube-data  /nfs/shares  nfs       rw,sync,hard,intr     0 0' >> /etc/fstab",
+
       ## Install pakages    
       "yum install -y  jq vim unzip wget",
       "chmod +x /tmp/*sh",
       "sudo yum install -y nfs-utils kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
-      "systemctl enable --now kubelet",     
-      #"sudo systemctl enable kubelet && sudo systemctl start kubelet",
+      "systemctl enable --now kubelet",
       "sudo echo \"${data.template_file.k8s_conf.rendered}\" > /etc/sysctl.d/k8s.conf",
       "sudo sysctl --system",
       "sudo mount -av",
       "IPADDRESS=$(ip address show dev  ens192 | grep 'inet ' | awk '{print $2}' | cut -d '/' -f1)",
+
+      ## Initializing Kubernete cluster
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
       "echo '--> run 'kubeadm init' <--'",
@@ -198,12 +161,10 @@ provisioner "remote-exec" {
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+
       ## Network ##
-      "echo '--> install Network <--'",
       "echo '--> Flannel network is currently installed <--'",
       "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
-      #"echo '--> Calico network is currently installed <--'",
-      #"kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
 
     ]
@@ -215,6 +176,7 @@ provisioner "remote-exec" {
     }
   }
 }
+
 data "external" "kubeadm-init-info" {
   program = ["bash", "${path.module}/scripts/kubeadm_init_info.sh"]
   query = {

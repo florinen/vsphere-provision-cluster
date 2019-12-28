@@ -28,7 +28,9 @@ variable "virtual_machine_template" {
     connection_password = ""
     # vsphere datacenter that the template is located in. empty by default
     datacenter  = ""
+    # vsphere RDS name used 
     drs_cluster = ""
+    # folder name to be created 
     folder      = ""
   }
 }
@@ -66,9 +68,10 @@ variable "virtual_machine_kubernetes_controller" {
     num_cpus = 2
     # amount of memory assigned to kubernetes_controller. default is 4096 (4GB)
     memory = ""
+    # domain kubernetes_node to be deployed
     domain = ""
-    label  = ""
-    hosts  = ""
+    # labels will be used for kubernetes_node
+    label = ""
   }
 }
 
@@ -99,23 +102,34 @@ variable "virtual_machine_kubernetes_node" {
     num_cpus = 2
     # amount of memory assigned to kubernetes_node virtual machines. default is 4096 (4GB)
     memory = ""
+    # domain kubernetes_node to be deployed
     domain = ""
-    label  = ""
-    hosts  = ""
+    # labels will be used for kubernetes_node
+    label = ""
   }
+}
+variable "env_name" {
+  description  = "Name of the file to be used in Kube folder on local machine"
+  default      = "prod-env"  #change this if creating new envinronment 
+  type         = "string"
+}
+
+variable "accept_key" {
+  description = "Accept new IP"
+  default     = "StrictHostKeyChecking=no" # -o UserKnownHostsFile=/dev/null
 }
 
 variable "flannel_cidr" {
   description = "CIDR IP address"
-  default     =  "10.244.0.0/16"
+  default     = "10.244.0.0/16"
 }
 variable "calico_cidr" {
   description = "CIDR IP address"
-  default     =  "192.168.0.0/16"
+  default     = "192.168.0.0/16"
 }
 variable "custom-calico_cidr" {
   description = "CIDR IP address"
-  default     =  "172.16.0.0/16"
+  default     = "172.16.0.0/16"
 }
 
 variable "k_version" {

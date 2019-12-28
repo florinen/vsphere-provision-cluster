@@ -14,6 +14,11 @@ Create one Centos 7 vm. After creation is finished, login and do the following:
 
 On the local machine where you run terraform script you must have "jq" installed. It is necessary for getting the kubernetes token and certhash that was generated when running ‘kubeadm init’. The 'kubeadm_init_info.sh' script also needs the "jq" program. These information will be needed when it comes to add new nodes in the cluster.
 
+## Kubernetes Cluster with Flannel CNI
+reference:
+```
+https://coreos.com/flannel/docs/latest/kubernetes.html
+```
 To create the clusrer run:
 ```
  terraform apply -var-file=terraform.tfvars
@@ -22,6 +27,16 @@ To create the clusrer run:
  ```
  terraform apply -var-file=terraform.tfvars
 ```
+The assumption is that folder .Kube is created and aliases already setup
+```
+mkdir ~/.Kube
+alias prod-env='export KUBECONFIG=$HOME/.kube/prod-env && \
+                kubectl config use-context kubernetes-admin@prod-env'
+```
+When terraform is finished with cluster just run:
+```
+kubectl get nodes  # you may have to wait a few seconds for the nodes to be in a Ready State
+``` 
 Nodes will be added or removed in the order they were created.
 After deletion of a node, remove the node that shows not ready state, run:
 ```
