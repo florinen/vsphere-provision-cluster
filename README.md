@@ -14,10 +14,10 @@ Create one Centos 7 vm. After creation is finished, login and do the following:
 
 On the local machine where you run terraform script you must have "jq" installed. It is necessary for getting the kubernetes token and certhash that was generated when running ‘kubeadm init’. The 'kubeadm_init_info.sh' script also needs the "jq" program. These information will be needed when it comes to add new nodes in the cluster.
 
-## Kubernetes Cluster with Calico CNI
+## Kubernetes Cluster with Flannel CNI
 reference:
 ```
-https://docs.projectcalico.org/v3.11/introduction/
+https://coreos.com/flannel/docs/latest/kubernetes.html
 ```
 To create the clusrer run:
 ```

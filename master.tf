@@ -114,7 +114,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
   }
   provisioner "remote-exec" {
     inline = [
-      "sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
+      #"sudo echo \"${data.template_file.calico_conf.rendered}\" > /etc/NetworkManager/conf.d/calico.conf",
       "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
     ]
     connection {
@@ -157,18 +157,16 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
       "echo '--> run 'kubeadm init' <--'",
-      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.calico_cidr} > /tmp/kubeadm_init_output.txt",
+      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.flannel_cidr} > /tmp/kubeadm_init_output.txt",
       "echo '--> setup $HOME/.kube/config <--'",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
 
       ## Network ##
-      "echo '--> Calico network is currently installed <--'",
-      "kubectl apply -f https://raw.githubusercontent.com/florinen/vsphere-provision-cluster/calico/network/calico/calico.yaml",
+      "echo '--> Flannel network is currently installed <--'",
+      "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
-      # echo "copying outputs and extracting values"
-      # scp -i "$private_key_path" -r "root@$public_ip:/root/cluster/data/output/*" "$data_path/output"
 
     ]
     connection {
