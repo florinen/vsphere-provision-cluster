@@ -63,8 +63,11 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
     inline = [
       "mkdir -p /root/.ssh/",
       "chmod 700 /root/.ssh",
-      "mv /tmp/authorized_keys /root/.ssh/authorized_keys",
-      "chmod 600 /root/.ssh/authorized_keys",
+      "mv /tmp/authorized_keys $HOME/.ssh/authorized_keys",
+      "tee -a $HOME/.ssh/authorized_keys <<EOF",
+      "${data.template_file.authorized_keys.rendered}",
+      "EOF", 
+      "chmod 600 $HOME/.ssh/authorized_keys",
       "sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config",
       "service sshd restart"
     ]
@@ -77,29 +80,29 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
   }
 
 
-  provisioner "file" {
-    source      = "${var.virtual_machine_kubernetes_controller["my_ssh_keys"]}"
-    destination = "/tmp/my_ssh_keys"
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
+  # provisioner "file" {
+  #   source      = "${var.virtual_machine_kubernetes_controller["my_ssh_keys"]}"
+  #   destination = "/tmp/my_ssh_keys"
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   }
+  # }
 
-  provisioner "remote-exec" {
-    inline = [
-      "cat /tmp/my_ssh_keys >> $HOME/.ssh/authorized_keys",
-      "rm -f '/tmp/my_ssh_keys'",
-    ]
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "cat /tmp/my_ssh_keys >> $HOME/.ssh/authorized_keys",
+  #     "rm -f '/tmp/my_ssh_keys'",
+  #   ]
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   }
+  # }
   provisioner "remote-exec" {
 
     inline = [
@@ -117,11 +120,9 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       "yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo",
       "yum update -y && yum install docker-ce-${var.d_version} -y",
       "mkdir /etc/docker",
-      #"user_data = <<-EOT \n  echo \"${data.template_file.daemon.rendered}\" > /etc/docker/daemon.json  \n   EOT ",
       "tee  /etc/docker/daemon.json <<EOF",
       "${data.template_file.daemon.rendered}",
       "EOF", 
-      #"sudo echo \\\"${data.template_file.daemon.rendered}\\\" > /etc/docker/daemon.json",
       "sudo mkdir -p /etc/systemd/system/docker.service.d",
       "sudo systemctl daemon-reload",
       "sudo systemctl restart docker",
@@ -148,17 +149,6 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-  # provisioner "remote-exec" {
-  #   inline = [
-      
-  #   ]
-  #   connection {
-  #     host        = "${element(self.*.default_ip_address, count.index)}"
-  #     type        = "${var.virtual_machine_template["connection_type"]}"
-  #     user        = "${var.virtual_machine_template["connection_user"]}"
-  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-  #   }
-  # }
    
   provisioner "remote-exec" {
     inline = [
@@ -166,8 +156,6 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
       "sudo echo '${var.nfs_server}:/mnt/Storage/Kube-data  /nfs/shares  nfs       rw,sync,hard,intr     0 0' >> /etc/fstab",
       "sudo yum install -y kubelet-${var.k_version} kubeadm-${var.k_version} kubectl-${var.k_version} openssl --disableexcludes=kubernetes",
       "systemctl enable --now kubelet",     
-      # "sudo systemctl enable kubelet",
-      # "sudo systemctl start kubelet",
       "sudo echo \"${data.template_file.k8s_conf.rendered}\" > /etc/sysctl.d/k8s.conf",
       "sudo sysctl --system",
       "sudo mount -av",

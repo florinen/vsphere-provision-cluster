@@ -64,8 +64,11 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     inline = [
       "mkdir -p /root/.ssh/",
       "chmod 700 /root/.ssh",
-      "mv /tmp/authorized_keys /root/.ssh/authorized_keys",
-      "chmod 600 /root/.ssh/authorized_keys",
+      "mv /tmp/authorized_keys $HOME/.ssh/authorized_keys",
+      "tee -a $HOME/.ssh/authorized_keys <<EOF",
+      "${data.template_file.authorized_keys.rendered}",
+      "EOF", 
+      "chmod 600 $HOME/.ssh/authorized_keys",
       "sed -i 's/#PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config",
       "service sshd restart"
     ]
@@ -79,32 +82,32 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
   }
 
 
-  provisioner "file" {
-    source      = "${var.virtual_machine_kubernetes_controller["my_ssh_keys"]}"
-    destination = "/tmp/my_ssh_keys"
+  # provisioner "file" {
+  #   source      = "${var.virtual_machine_kubernetes_controller["my_ssh_keys"]}"
+  #   destination = "/tmp/my_ssh_keys"
 
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-    }
-  }
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   }
+  # }
 
-  provisioner "remote-exec" {
-    inline = [
-      "cat /tmp/my_ssh_keys >> $HOME/.ssh/authorized_keys",
-      "rm -f '/tmp/my_ssh_keys'",
-    ]
+  # provisioner "remote-exec" {
+  #   inline = [
+  #     "cat /tmp/my_ssh_keys >> $HOME/.ssh/authorized_keys",
+  #     "rm -f '/tmp/my_ssh_keys'",
+  #   ]
 
-    connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+  #   connection {
+  #     host        = "${element(self.*.default_ip_address, count.index)}"
+  #     type        = "${var.virtual_machine_template["connection_type"]}"
+  #     user        = "${var.virtual_machine_template["connection_user"]}"
+  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
 
-    }
-  }
+  #   }
+  # }
   provisioner "remote-exec" {
 
     inline = [
@@ -126,8 +129,6 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sudo mkdir -p /etc/systemd/system/docker.service.d",
       "sudo systemctl daemon-reload",
       "sudo systemctl enable --now docker",
-      # "sudo systemctl restart docker",
-      # "sudo systemctl enable docker",
     ]
 
     connection {
@@ -149,19 +150,6 @@ provisioner "remote-exec" {
       private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
     }
   }
-   
-  # provisioner "remote-exec" {
-  #   inline = [
-      
-  #   ]
-  #   connection {
-  #     host        = "${element(self.*.default_ip_address, count.index)}"
-  #     type        = "${var.virtual_machine_template["connection_type"]}"
-  #     user        = "${var.virtual_machine_template["connection_user"]}"
-  #     private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
-  #   }
-  # }
-  
    
   provisioner "file" {
     source      = "./scripts/kubeadm_init_info.sh"
@@ -193,17 +181,17 @@ provisioner "remote-exec" {
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
       "echo '--> run 'kubeadm init' <--'",
-      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.flannel_cidr} > /tmp/kubeadm_init_output.txt",
+      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.calico_cidr} > /tmp/kubeadm_init_output.txt",
       "echo '--> setup $HOME/.kube/config <--'",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
       "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
       ## Network ##
       "echo '--> install Network <--'",
-      "echo '--> Flannel network is currently installed <--'",
-      "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
-      #"echo '--> Calico network is currently installed <--'",
-      #"kubectl apply -f https://docs.projectcalico.org/v3.11/manifests/calico.yaml",
+      # "echo '--> Flannel network is currently installed <--'",
+      # "kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml",
+      "echo '--> Calico network is currently installed <--'",
+      "kubectl apply -f https://raw.githubusercontent.com/florinen/vsphere-provision-cluster/calico/network/calico/calico.yaml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
 
     ]

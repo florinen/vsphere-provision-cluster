@@ -5,6 +5,7 @@ provider "vsphere" {
   vsphere_server       = "${var.vsphere_connection["vsphere_server"]}"
   allow_unverified_ssl = true
 }
+
 provider "external" {
   version = "~> 1.2"
 }
@@ -56,6 +57,9 @@ resource "vsphere_resource_pool" "vm_resource_pool" {
   parent_resource_pool_id = "${data.vsphere_compute_cluster.vm_cluster.resource_pool_id}"
 }
 ##  Files and Scripts  ##
+data "template_file" "authorized_keys" {
+  template = "${file("${path.module}/authorized_keys.tpl")}"
+}
 data "template_file" "calico_conf" {
   template = "${file("${path.module}/scripts/calico_conf.tpl")}"
 }
@@ -70,7 +74,7 @@ data "template_file" "k8s_conf" {
 }
 
 #++++++++++++++++++++
-##  Tagging Info   ##
+##  Tag Category Info   ##
 #++++++++++++++++++++
 resource "vsphere_tag_category" "environment" {
   name        = "${var.vsphere_tag_category}"
@@ -112,7 +116,7 @@ resource "vsphere_tag_category" "worker" {
 }
 
 #+++++++++
-## Tags ##
+## Tags Info ##
 #+++++++++
 resource "vsphere_tag" "environment" {
   name        = "${var.vsphere_tag_name}"
