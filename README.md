@@ -27,7 +27,7 @@ To create the clusrer run:
  ```
  terraform apply -var-file=terraform.tfvars
 ```
-The assumption is that folder .Kube is created and aliases already setup
+The assumption is that folder .Kube is created and alias could also be created manual.
 ```
 mkdir ~/.Kube
 alias prod-env='export KUBECONFIG=$HOME/.kube/prod-env && \
