@@ -27,7 +27,7 @@ To create the clusrer run:
  ```
  terraform apply -var-file=terraform.tfvars
 ```
-## Manual adding alias and creating Kubeconfig file terraform is failling to do that.
+## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
 ```
 mkdir ~/.Kube
 scp root@<master_IP>:/etc/kubernetes/admin.conf ~/.kube/prod-env  ## edit 'prod-env' file with your settings
