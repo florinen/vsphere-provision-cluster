@@ -27,22 +27,38 @@ To create the clusrer run:
  ```
  terraform apply -var-file=terraform.tfvars
 ```
-The assumption is that folder .Kube is created and aliases already setup
+## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
 ```
 mkdir ~/.Kube
+scp root@<master_IP>:/etc/kubernetes/admin.conf ~/.kube/prod-env  ## edit 'prod-env' file with your settings
 alias prod-env='export KUBECONFIG=$HOME/.kube/prod-env && \
                 kubectl config use-context kubernetes-admin@prod-env'
 ```
+## Using terraform 
+```
+terraform taint null_resource.cluster_access
+terraform taint null_resource.copy_kube_config
+terraform apply -var-file=terraform.tfvars --auto-approve
+```
+Above commands should copy admin.conf file and setup kubeconfig for you. If you are using bash profile, change that in the cluster_access.sh script. 
 When terraform is finished with cluster just run:
 ```
 kubectl get nodes  # you may have to wait a few seconds for the nodes to be in a Ready State
-``` 
+```
+## To add or remove worker nodes. 
+Change the count value in terraform.tfvars file for nodes, then:
+```
+terraform apply -var-file=terraform.tfvars 
+````
 Nodes will be added or removed in the order they were created.
 After deletion of a node, remove the node that shows not ready state, run:
 ```
 kubectl get nodes
 kubectl delete node <node-name>
 ```
+## To destroy the cluster
+```
+terraform destroy -var-file=terraform.tfvars 
 
 ## Run Multiple masters in the cluster:
 Will be comming soon! 
