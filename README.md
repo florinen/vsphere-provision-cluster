@@ -23,10 +23,6 @@ To create the clusrer run:
 ```
  terraform apply -var-file=terraform.tfvars
  ```
- If you would like to add or remove nodes from the cluster just modify the count number in the 'terraform.tfvars' then run the terraform apply again:
- ```
- terraform apply -var-file=terraform.tfvars
-```
 ## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
 ```
 mkdir ~/.Kube
