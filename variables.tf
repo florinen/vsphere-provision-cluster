@@ -108,6 +108,15 @@ variable "virtual_machine_kubernetes_node" {
     label = ""
   }
 }
+## Terraform init
+variable "provider_name" {}
+variable "deployment_environment" {}
+variable "deployment_name" {}
+variable "state_file_name" {}
+
+
+
+
 variable "env_name" {
   description  = "Name of the file to be used in Kube folder on local machine"
   default      = "prod-env"  #change this if creating new envinronment 
@@ -121,15 +130,15 @@ variable "accept_key" {
 
 variable "flannel_cidr" {
   description = "CIDR IP address"
-  default     = "10.244.0.0/16"
+  default     = ""
 }
 variable "calico_cidr" {
   description = "CIDR IP address"
-  default     = "192.168.0.0/16"
+  default     = ""
 }
 variable "custom-calico_cidr" {
   description = "CIDR IP address"
-  default     = "172.16.0.0/16"
+  default     = ""
 }
 
 variable "k_version" {

@@ -1,6 +1,6 @@
 resource "vsphere_virtual_machine" "kubernetes_nodes" {
   count            = "${var.virtual_machine_kubernetes_node["count"]}"
-  name             = "${format("${var.virtual_machine_kubernetes_node["prefix"]}-%03d", count.index + 1)}"
+  name             = "${format("${var.deployment_environment}-${var.virtual_machine_kubernetes_node["prefix"]}-%03d", count.index + 1)}"
   resource_pool_id = "${vsphere_resource_pool.vm_resource_pool.id}"
   datastore_id     = "${data.vsphere_datastore.node_datastore.id}"
   folder           = "${vsphere_folder.folder.path}"
@@ -20,7 +20,7 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
   }
 
   disk {
-    label            = "${var.virtual_machine_kubernetes_node["prefix"]}"
+    label            = "${var.deployment_environment}-${var.virtual_machine_kubernetes_node["prefix"]}"
     size             = "${data.vsphere_virtual_machine.template.disks.0.size}"
     thin_provisioned = "${data.vsphere_virtual_machine.template.disks.0.thin_provisioned}"
     eagerly_scrub    = "${data.vsphere_virtual_machine.template.disks.0.eagerly_scrub}"
@@ -32,7 +32,7 @@ resource "vsphere_virtual_machine" "kubernetes_nodes" {
     customize {
       timeout = "20"
       linux_options {
-        host_name = "${format("${var.virtual_machine_kubernetes_node["prefix"]}-%03d", count.index + 1)}"
+        host_name = "${format("${var.deployment_environment}-${var.virtual_machine_kubernetes_node["prefix"]}-%03d", count.index + 1)}"
         domain    = "${var.virtual_machine_kubernetes_node["domain"]}"
       }
 
