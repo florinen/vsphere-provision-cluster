@@ -12,12 +12,13 @@ if [ ! -f "$DATAFILE" ]; then
   return 1
 fi
 
-wget --quiet -O "$PWD/common_configuration.tfvars"\
-  "https://raw.githubusercontent.com/florinen/vsphere-env/master/consul_backend.tfvars"
+# wget --quiet -O "$PWD/common_configuration.tfvars"\
+#   "https://raw.githubusercontent.com/florinen/vsphere-env/master/consul_backend.tfvars"
 
-BACKEND=$(sed -nr 's/^backend\s*=\s*"([^"]*)".*$/\1/p'                       "$PWD/common_configuration.tfvars")
-ADDRESS=$(sed -nr 's/^address\s*=\s*"([^"]*)".*$/\1/p'                       "$PWD/common_configuration.tfvars")
-SCHEME=$(sed -nr 's/^scheme\s*=\s*"([^"]*)".*$/\1/p'                         "$PWD/common_configuration.tfvars")
+BACKEND=$(sed -nr 's/^backend\s*=\s*"([^"]*)".*$/\1/p'                       "$DATAFILE")
+BUCKET=$(sed -nr 's/^bucket\s*=\s*"([^"]*)".*$/\1/p'                         "$DATAFILE")
+#KEY=$(sed -nr 's/^key\s*=\s*"([^"]*)".*$/\1/p'                               "$DATAFILE")
+REGION=$(sed -nr 's/^region\s*=\s*"([^"]*)".*$/\1/p'                         "$DATAFILE")
 ENVIRONMENT=$(sed -nr 's/^deployment_environment\s*=\s*"([^"]*)".*$/\1/p'    "$DATAFILE")
 #DEPLOYMENT=$(sed -nr 's/^deployment_name\s*=\s*"([^"]*)".*$/\1/p'            "$DATAFILE")
 PROJECT=$(sed -nr 's/^provider_name\s*=\s*"([^"]*)".*$/\1/p'                 "$DATAFILE")
@@ -32,15 +33,21 @@ then
     return 1
 fi
 
-if [ -z "$ADDRESS" ]
+if [ -z "$BUCKET" ]
 then
-    echo "setenv: 'address' variable not set in configuration file."
+    echo "setenv: 'bucket' variable not set in configuration file."
     return 1
 fi
 
-if [ -z "$SCHEME" ]
+# if [ -z "$KEY" ]
+# then
+#   echo "setenv: 'key' variable not set in configuration file."
+#   return 1
+# fi
+
+if [ -z "$REGION" ]
 then
-  echo "setenv: 'scheme' variable not set in configuration file."
+  echo "setenv: 'region' variable not set in configuration file."
   return 1
 fi
 
@@ -75,9 +82,9 @@ fi
 cat << EOF > "$DIR/backend.tf"
 terraform {
   backend "${BACKEND}" {
-    address  = "${ADDRESS}"
-    scheme   = "${SCHEME}"
-    path     = "${PROJECT}/${ENVIRONMENT}/${STATEFILE}"
+    bucket  = "${BUCKET}"
+    key     = "${PROJECT}/${ENVIRONMENT}/${STATEFILE}"
+    region  = "${REGION}"
   }
 }
 EOF
