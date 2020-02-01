@@ -15,6 +15,10 @@ provider "null" {
 provider "template" {
   version = "~> 2.1"
 }
+provider "local" {
+  version = "~> 1.4"
+}
+
 data "vsphere_datacenter" "template_datacenter" {
   name = "${var.virtual_machine_template["datacenter"]}"
 }
