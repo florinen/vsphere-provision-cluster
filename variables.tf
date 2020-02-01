@@ -113,6 +113,14 @@ variable "provider_name" {}
 variable "deployment_environment" {}
 variable "deployment_name" {}
 variable "state_file_name" {}
+## S3
+variable "backend" {}
+variable "bucket" {}
+variable "region" {}
+
+
+
+
 
 
 
