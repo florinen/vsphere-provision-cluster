@@ -1,7 +1,7 @@
 terraform {
-  backend "consul" {
-    address  = "consul.omegnet.com"
-    scheme   = "http"
-    path     = "vsphere/prod/terraform.tfstate"
+  backend "s3" {
+    bucket  = "kube.omegnet.com"
+    key     = "vsphere/prod/terraform.tfstate"
+    region  = "eu-west-1"
   }
 }
