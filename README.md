@@ -27,15 +27,15 @@ terraform apply -var-file $DATAFILE
 ## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
 ```
 mkdir ~/.Kube
-scp root@<master_IP>:/etc/kubernetes/admin.conf ~/.kube/prod-env  ## edit 'prod-env' file with your settings
-alias prod-env='export KUBECONFIG=$HOME/.kube/prod-env && \
-                kubectl config use-context kubernetes-admin@prod-env'
+scp root@<master_IP>:/etc/kubernetes/admin.conf ~/.kube/prod  ## edit 'prod' file with your settings
+alias prod='export KUBECONFIG=$HOME/.kube/prod && \
+                kubectl config use-context kubernetes-admin@prod'
 ```
 ## Using terraform 
 ```
 terraform taint null_resource.cluster_access
 terraform taint null_resource.copy_kube_config
-terraform apply -var-file=terraform.tfvars --auto-approve
+terraform apply -var-file $DATAFILE --auto-approve
 ```
 Above commands should copy admin.conf file and setup kubeconfig for you. If you are using bash profile, change that in the cluster_access.sh script. 
 When terraform is finished with cluster just run:
