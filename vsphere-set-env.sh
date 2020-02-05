@@ -92,7 +92,7 @@ cat "$DIR/backend.tf"
 
 #VSPHERE_CREDENTIALS="${DIR}/${CREDENTIALS}"
 #export VSPHERE_CREDENTIALS
-#export DATAFILE
+export DATAFILE
 /bin/rm -rf "$PWD/common_configuration.tfvars" 2>/dev/null
 /bin/rm -rf "$DIR/.terraform" 2>/dev/null
 echo "setenv: Initializing terraform"
