@@ -21,7 +21,8 @@ https://docs.projectcalico.org/v3.11/introduction/
 ```
 To create the clusrer run:
 ```
- terraform apply -var-file=terraform.tfvars
+source ./vsphere-set-env.sh terraform.tfvars
+terraform apply -var-file $DATAFILE
  ```
 ## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
 ```
@@ -44,7 +45,7 @@ kubectl get nodes  # you may have to wait a few seconds for the nodes to be in a
 ## To add or remove worker nodes. 
 Change the count value in terraform.tfvars file for nodes, then:
 ```
-terraform apply -var-file=terraform.tfvars 
+terraform apply -var-file $DATAFILE 
 ````
 Nodes will be added or removed in the order they were created.
 After deletion of a node, remove the node that shows not ready state, run:
@@ -54,7 +55,7 @@ kubectl delete node <node-name>
 ```
 ## To destroy the cluster
 ```
-terraform destroy -var-file=terraform.tfvars 
+terraform destroy -var-file $DATAFILE 
 
 ## Run Multiple masters in the cluster:
 Will be comming soon! 
