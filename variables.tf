@@ -27,11 +27,11 @@ variable "virtual_machine_template" {
     # default password to initially connect to deployed virtual machines. empty by default
     connection_password = ""
     # vsphere datacenter that the template is located in. empty by default
-    datacenter  = ""
+    datacenter = ""
     # vsphere RDS name used 
     drs_cluster = ""
     # folder name to be created 
-    folder      = ""
+    folder = ""
   }
 }
 
@@ -126,9 +126,9 @@ variable "region" {}
 
 
 variable "env_name" {
-  description  = "Name of the file to be used in Kube folder on local machine"
-  default      = "prod-env"  #change this if creating new envinronment 
-  type         = "string"
+  description = "Name of the file to be used in Kube folder on local machine"
+  default     = ""       #change this if creating new envinronment 
+  type        = "string"
 }
 
 variable "accept_key" {
