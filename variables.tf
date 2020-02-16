@@ -132,7 +132,7 @@ variable "env_name" {
 }
 
 variable "accept_key" {
-  description = "Accept new IP"
+  description = "@ the prompt Accept new fingerprint"
   default     = "StrictHostKeyChecking=no" # -o UserKnownHostsFile=/dev/null
 }
 
