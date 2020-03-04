@@ -8,4 +8,4 @@ sed -i "/${env_name}/d" ~/.zshrc_profile
 sudo rm -f $HOME/.kube/${env_name}
 sudo mv $HOME/.kube/admin.conf $HOME/.kube/${env_name}
 
-echo 'alias '${env_name}'="export KUBECONFIG=$HOME/.kube/'${env_name}' && kubectl config use-context kubernetes-admin@'${env_name}'"' >> ~/.zshrc_profile
+echo 'alias '${env_name}'="export KUBECONFIG=$HOME/.kube/'${env_name}' && kubectl config use-context kubernetes-admin@'${env_name}'"' >> ~/.bash_profile
