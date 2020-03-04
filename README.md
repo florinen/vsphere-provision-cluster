@@ -59,3 +59,49 @@ terraform destroy -var-file $DATAFILE
 
 ## Run Multiple masters in the cluster:
 Will be comming soon! 
+
+## Accessing and managing cluster from different host.
+
+Clone repo:
+``` 
+	git clone git@github.com:florinen/vsphere-provision-cluster.git
+	cd vsphere-provision-cluster
+```
+Copy terraform.tfvars file into this direcroy or point to it's location as well as all neccessary files:
+```
+	authorized_keys.tpl
+	terraform.tfvars
+```
+Set the backend and init terraform:
+```
+	source ./vsphere-set-env.sh terraform.tfvars
+```
+Recreate resources with terraform:
+```
+	terraform taint null_resource.generate-sshkey
+	terraform taint null_resource.ssh-keygen-delete-nodes
+	terraform taint  null_resource.remove_ssh_keys
+	
+	terraform apply -var-file $DATAFILE --auto-approve
+```
+Get the pub key just created in above step and copy to all nodes, you can use older private key to access nodes or use older node to upload the pub key:
+```
+	cat ~/.ssh/id_rsa-prod.pub
+	ssh -i ~/.ssh/<previous_node_priv_key> root@10.10.45.215
+	vim ~/.ssh/authorized_keys
+```
+Make a new directory in user home directory. ONLY if does not exists:
+```
+	mkdir ~/.kube
+```
+Recreate resources using terraform taint cmd:
+```
+	terraform taint null_resource.cluster_access
+	terraform taint null_resource.copy_kube_config
+	
+	terraform apply -var-file $DATAFILE --auto-approve
+```
+At the end you will need to source the bash_profile file or just simple logout and log back in:
+```
+	source ~/.bash_profile
+```
