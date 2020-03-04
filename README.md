@@ -101,7 +101,7 @@ Recreate resources using terraform taint cmd:
 	
 	terraform apply -var-file $DATAFILE --auto-approve
 ```
-At the end you will need to source the bash_profile file or just simple logout and log back in:
+At the end you will need to source the bash_profile file or just simply logout and log back in:
 ```
 	source ~/.bash_profile
 ```
