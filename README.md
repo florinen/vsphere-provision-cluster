@@ -59,3 +59,29 @@ terraform destroy -var-file $DATAFILE
 
 ## Run Multiple masters in the cluster:
 Will be comming soon! 
+
+## Trooubleshooting 
+
+If 'token' missing from state file
+```
+terraform state pull |grep token
+terraform state pull >dev-state.txt
+```
+Add token then push the file to S3 bucket. Change serial to a higher number. EX: serial: "1" >> "2" and push the file to S3 bucket.
+```
+terraform state push dev-state
+```
+Delete local state file and do terraform init:
+```
+source ./vsphere-set-env.sh ../data/terraform.tfvars
+terraform apply -var-file $DATAFILE
+```
+
+If above steps not helpful, do the next steps:
+```
+terraform taint 'vsphere_virtual_machine.kubernetes_controller[0]'
+terraform taint 'null_resource.kubeadm_join[0]'
+terraform taint 'null_resource.kubeadm_join[1]'
+terraform apply -var-file $DATAFILE
+```
+This should recreate master node and rejoin the worker nodes to cluster.
