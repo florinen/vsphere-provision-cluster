@@ -56,7 +56,7 @@ kubectl delete node <node-name>
 ## To destroy the cluster
 ```
 terraform destroy -var-file $DATAFILE 
-
+```
 ## Run Multiple masters in the cluster:
 Will be comming soon! 
 
