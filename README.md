@@ -21,7 +21,7 @@ https://docs.projectcalico.org/v3.11/introduction/
 ```
 To create the clusrer run:
 ```
-source ./vsphere-set-env.sh terraform.tfvars
+source ./vsphere-set-env.sh ../data/terraform.tfvars
 terraform apply -var-file $DATAFILE
  ```
 ## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
