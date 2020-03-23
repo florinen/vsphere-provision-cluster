@@ -1,4 +1,8 @@
  #!/bin/bash
+RED=`tput setaf 1`
+YELLOW=`tput setaf 2`
+MAGENTA=`tput setaf 5`
+RESET=`tput sgr0`
 
 DIR=$(pwd)
 DATAFILE="$DIR/$1"
@@ -74,6 +78,7 @@ terraform {
 EOF
 cat "$DIR/backend.tf"
 
+echo "===>This Backend is using${MAGENTA} AWS ${RESET}<==="
 #VSPHERE_CREDENTIALS="${DIR}/${CREDENTIALS}"
 #export VSPHERE_CREDENTIALS
 export DATAFILE
