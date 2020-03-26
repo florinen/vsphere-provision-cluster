@@ -62,20 +62,16 @@ Will be comming soon!
 
 ## Trooubleshooting 
 
-If 'token' missing from state file
+If 'token' missing from master, recreate token on master node. Token expires after 24h, this is default:
 ```
-terraform state pull |grep token
-terraform state pull >dev-state.txt
+kubeadm token create --print-join-command >/tmp/kubeadm_init_output.txt
 ```
-Add token then push the file to S3 bucket. Change serial to a higher number. EX: serial: "1" >> "2" and push the file to S3 bucket.
+Exit master node and execute terraform apply again, this time new node should join the cluster. 
 ```
-terraform state push dev-state
-```
-Delete local state file and do terraform init:
-```
-source ./vsphere-set-env.sh ../data/terraform.tfvars
 terraform apply -var-file $DATAFILE
 ```
+
+## Last resort:
 
 If above steps not helpful, do the next steps:
 ```
