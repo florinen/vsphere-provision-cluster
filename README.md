@@ -111,7 +111,7 @@ At the end you will need to source the bash_profile file or just simply logout a
 If 'token' missing from master, recreate token on master node. Token expires after 24h, this is default:
 SSH onto master:
 ```
-kubeadm token create --print-join-command >/tmp/kubeadm_init_output.txt
+kubeadm token create --print-join-command 
 ```
 Exit master node and execute terraform apply again, this time new node should join the cluster.
 ```
