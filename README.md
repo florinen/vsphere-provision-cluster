@@ -21,7 +21,7 @@ https://docs.projectcalico.org/v3.11/introduction/
 ```
 To create the clusrer run:
 ```
-source ./vsphere-set-env.sh terraform.tfvars
+source ./vsphere-set-env.sh ../data/terraform.tfvars
 terraform apply -var-file $DATAFILE
  ```
 ## Manual adding alias and creating Kubeconfig file if terraform is failling to do that.
@@ -74,7 +74,7 @@ Copy terraform.tfvars file into this direcroy or point to it's location as well 
 ```
 Set the backend and init terraform:
 ```
-	source ./vsphere-set-env.sh terraform.tfvars
+	source ./vsphere-set-env.sh ../data/terraform.tfvars
 ```
 Recreate resources with terraform:
 ```
@@ -105,3 +105,25 @@ At the end you will need to source the bash_profile file or just simply logout a
 ```
 	source ~/.bash_profile
 ```
+
+## Trooubleshooting
+
+If 'token' missing from master, recreate token on master node. Token expires after 24h, this is default:
+SSH onto master:
+```
+kubeadm token create --print-join-command >/tmp/kubeadm_init_output.txt
+```
+Exit master node and execute terraform apply again, this time new node should join the cluster.
+```
+terraform apply -var-file $DATAFILE
+```
+## Last resort:
+
+If above steps not helpful, do the next steps:
+```
+terraform taint 'vsphere_virtual_machine.kubernetes_controller[0]'
+terraform taint 'null_resource.kubeadm_join[0]'
+terraform taint 'null_resource.kubeadm_join[1]'
+terraform apply -var-file $DATAFILE
+```
+This should recreate master node and rejoin the worker nodes to cluster.
