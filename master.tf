@@ -156,8 +156,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       ## Initializing Kubernete cluster
       "echo '--> pull kubeadm images <--'",
       "kubeadm config images pull",
+      "echo '--> run 'Generate token' <--'",
+      "KUBEADM_TOKEN=\"$(kubeadm token generate)\"",
       "echo '--> run 'kubeadm init' <--'",
-      "kubeadm init --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.calico_cidr} > /tmp/kubeadm_init_output.txt",
+      "kubeadm init --node-name=$HOSTNAME --token $KUBEADM_TOKEN --token-ttl=0 --apiserver-advertise-address=$IPADDRESS --pod-network-cidr=${var.calico_cidr} > /tmp/kubeadm_init_output.txt",
       "echo '--> setup $HOME/.kube/config <--'",
       "mkdir -p $HOME/.kube",
       "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
@@ -165,7 +167,7 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
 
       ## Network ##
       "echo '--> Calico network is currently installed <--'",
-      "kubectl apply -f https://raw.githubusercontent.com/florinen/vsphere-provision-cluster/calico/network/calico/calico.yaml",
+      "kubectl apply -f https://raw.githubusercontent.com/florinen/vsphere-provision-cluster/master/calico/calico.yaml",
       "tail -n2 /tmp/kubeadm_init_output.txt | head -n 1",
       # echo "copying outputs and extracting values"
       # scp -i "$private_key_path" -r "root@$public_ip:/root/cluster/data/output/*" "$data_path/output"
