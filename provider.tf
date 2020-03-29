@@ -90,6 +90,7 @@ data "template_file" "k8s_conf" {
 resource "vsphere_tag_category" "environment" {
   name        = "${var.vsphere_tag_category}"
   cardinality = "SINGLE"
+  description = "Dev environment"
   associable_types = [
     "VirtualMachine",
     "Datacenter",
@@ -100,6 +101,7 @@ resource "vsphere_tag_category" "environment" {
 resource "vsphere_tag_category" "region" {
   name        = "${var.vsphere_region_catergory}"
   cardinality = "SINGLE"
+  description = "Dev region"
   associable_types = [
     "VirtualMachine",
     "Datacenter",
@@ -110,6 +112,7 @@ resource "vsphere_tag_category" "region" {
 resource "vsphere_tag_category" "master" {
   name        = "${var.vsphere_m_catergory}"
   cardinality = "SINGLE"
+  description = "Dev master node"
   associable_types = [
     "VirtualMachine",
     "Datacenter",
@@ -119,6 +122,7 @@ resource "vsphere_tag_category" "master" {
 resource "vsphere_tag_category" "worker" {
   name        = "${var.vsphere_w_catergory}"
   cardinality = "SINGLE"
+  description = "Dev worker node"
   associable_types = [
     "VirtualMachine",
     "Datacenter",
