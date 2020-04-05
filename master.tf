@@ -1,62 +1,62 @@
 
 resource "vsphere_virtual_machine" "kubernetes_controller" {
-  count            = "${var.virtual_machine_kubernetes_controller["count"]}"
-  name             = "${format("${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}-%03d", count.index + 1)}"
-  resource_pool_id = "${vsphere_resource_pool.vm_resource_pool.id}"
-  datastore_id     = "${data.vsphere_datastore.vm_datastore.id}"
-  folder           = "${vsphere_folder.folder.path}"
-  num_cpus         = "${var.virtual_machine_kubernetes_controller["num_cpus"]}"
-  memory           = "${var.virtual_machine_kubernetes_controller["memory"]}"
-  guest_id         = "${data.vsphere_virtual_machine.template.guest_id}"
-  scsi_type        = "${data.vsphere_virtual_machine.template.scsi_type}"
-  enable_disk_uuid = "true"
+  count            =  var.virtual_machine_kubernetes_controller["count"]
+  name             = format("${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}-%03d", count.index + 1)
+  resource_pool_id = vsphere_resource_pool.vm_resource_pool.id
+  datastore_id     = data.vsphere_datastore.vm_datastore.id
+  folder           = vsphere_folder.folder.path
+  num_cpus         = var.virtual_machine_kubernetes_controller["num_cpus"]
+  memory           = var.virtual_machine_kubernetes_controller["memory"]
+  guest_id         = data.vsphere_virtual_machine.template.guest_id
+  scsi_type        = data.vsphere_virtual_machine.template.scsi_type
+  enable_disk_uuid = true
   annotation       = "Managed by Terraform"
-  tags = ["${vsphere_tag.environment.id}",
-    "${vsphere_tag.region.id}",
-    "${vsphere_tag.master.id}",
+  tags = [ vsphere_tag.environment.id,
+    vsphere_tag.region.id,
+    vsphere_tag.master.id,
   ]
   network_interface {
-    network_id   = "${data.vsphere_network.vm_network.id}"
-    adapter_type = "${data.vsphere_virtual_machine.template.network_interface_types[0]}"
+    network_id   = data.vsphere_network.vm_network.id
+    adapter_type = data.vsphere_virtual_machine.template.network_interface_types[0]
   }
 
   disk {
-    label            = "${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}"
-    size             = "${data.vsphere_virtual_machine.template.disks.0.size}"
-    thin_provisioned = "${data.vsphere_virtual_machine.template.disks.0.thin_provisioned}"
-    eagerly_scrub    = "${data.vsphere_virtual_machine.template.disks.0.eagerly_scrub}"
+    label            = format("${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}")
+    size             = data.vsphere_virtual_machine.template.disks.0.size
+    thin_provisioned = data.vsphere_virtual_machine.template.disks.0.thin_provisioned
+    eagerly_scrub    = data.vsphere_virtual_machine.template.disks.0.eagerly_scrub
   }
 
   clone {
-    template_uuid = "${data.vsphere_virtual_machine.template.id}"
+    template_uuid = data.vsphere_virtual_machine.template.id
 
     customize {
       timeout = "20"
       linux_options {
-        host_name = "${format("${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}-%03d", count.index + 1)}"
-        domain    = "${var.virtual_machine_kubernetes_controller["domain"]}"
+        host_name = format("${var.deployment_environment}-${var.virtual_machine_kubernetes_controller["name"]}-%03d", count.index + 1)
+        domain    = var.virtual_machine_kubernetes_controller["domain"]
       }
 
       network_interface {
-        ipv4_address = "${cidrhost(var.virtual_machine_kubernetes_controller["ip_address_network"], var.virtual_machine_kubernetes_controller["starting_hostnum"] + count.index)}"
-        ipv4_netmask = "${element(split("/", var.virtual_machine_kubernetes_controller["ip_address_network"]), 1)}"
+        ipv4_address = cidrhost(var.virtual_machine_kubernetes_controller["ip_address_network"], var.virtual_machine_kubernetes_controller["starting_hostnum"] + count.index)
+        ipv4_netmask = element(split("/", var.virtual_machine_kubernetes_controller["ip_address_network"]), 1)
       }
 
-      ipv4_gateway    = "${var.virtual_machine_kubernetes_controller["gateway"]}"
-      dns_server_list = ["${var.virtual_machine_kubernetes_controller["dns_server"]}"]
+      ipv4_gateway    = var.virtual_machine_kubernetes_controller["gateway"]
+      dns_server_list = [var.virtual_machine_kubernetes_controller["dns_server"]]
 
     }
   }
 
   provisioner "file" {
-    source      = "${var.virtual_machine_kubernetes_controller["public_key"]}"
+    source      = var.virtual_machine_kubernetes_controller["public_key"]
     destination = "/tmp/authorized_keys"
 
     connection {
-      host     = "${element(self.*.default_ip_address, count.index)}"
-      type     = "${var.virtual_machine_template["connection_type"]}"
-      user     = "${var.virtual_machine_template["connection_user"]}"
-      password = "${var.virtual_machine_template["connection_password"]}"
+      host     = element(self.*.default_ip_address, count.index)
+      type     = var.virtual_machine_template["connection_type"]
+      user     = var.virtual_machine_template["connection_user"]
+      password = var.virtual_machine_template["connection_password"]
     }
   }
 
@@ -74,10 +74,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     ]
 
     connection {
-      host     = "${element(self.*.default_ip_address, count.index)}"
-      type     = "${var.virtual_machine_template["connection_type"]}"
-      user     = "${var.virtual_machine_template["connection_user"]}"
-      password = "${var.virtual_machine_template["connection_password"]}"
+      host     = element(self.*.default_ip_address, count.index)
+      type     = var.virtual_machine_template["connection_type"]
+      user     = var.virtual_machine_template["connection_user"]
+      password = var.virtual_machine_template["connection_password"]
     }
   }
   provisioner "remote-exec" {
@@ -106,10 +106,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     ]
 
     connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+      host        = element(self.*.default_ip_address, count.index)
+      type        = var.virtual_machine_template["connection_type"]
+      user        = var.virtual_machine_template["connection_user"]
+      private_key = file("${var.virtual_machine_kubernetes_controller["private_key"]}")
     }
   }
   provisioner "remote-exec" {
@@ -118,10 +118,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
       "sudo echo \"${data.template_file.kube_repo.rendered}\" > /etc/yum.repos.d/kubernetes.repo"
     ]
     connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+      host        = element(self.*.default_ip_address, count.index)
+      type        = var.virtual_machine_template["connection_type"]
+      user        = var.virtual_machine_template["connection_user"]
+      private_key = file("${var.virtual_machine_kubernetes_controller["private_key"]}")
     }
   }
 
@@ -130,10 +130,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
     destination = "/tmp/kubeadm_init_info.sh"
 
     connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+      host        = element(self.*.default_ip_address, count.index)
+      type        = var.virtual_machine_template["connection_type"]
+      user        = var.virtual_machine_template["connection_user"]
+      private_key = file("${var.virtual_machine_kubernetes_controller["private_key"]}")
     }
   }
 
@@ -174,10 +174,10 @@ resource "vsphere_virtual_machine" "kubernetes_controller" {
 
     ]
     connection {
-      host        = "${element(self.*.default_ip_address, count.index)}"
-      type        = "${var.virtual_machine_template["connection_type"]}"
-      user        = "${var.virtual_machine_template["connection_user"]}"
-      private_key = "${file("${var.virtual_machine_kubernetes_controller["private_key"]}")}"
+      host        = element(self.*.default_ip_address, count.index)
+      type        = var.virtual_machine_template["connection_type"]
+      user        = var.virtual_machine_template["connection_user"]
+      private_key = file("${var.virtual_machine_kubernetes_controller["private_key"]}")
     }
   }
 }

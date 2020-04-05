@@ -1,8 +1,8 @@
 provider "vsphere" {
   version              = "~> 1.13"
-  user                 = "${var.vsphere_connection["vsphere_user"]}"
-  password             = "${var.vsphere_connection["vsphere_password"]}"
-  vsphere_server       = "${var.vsphere_connection["vsphere_server"]}"
+  user                 = var.vsphere_connection["vsphere_user"]
+  password             = var.vsphere_connection["vsphere_password"]
+  vsphere_server       = var.vsphere_connection["vsphere_server"]
   allow_unverified_ssl = true
 }
 
@@ -46,19 +46,19 @@ data "vsphere_virtual_machine" "template" {
   datacenter_id = "${data.vsphere_datacenter.template_datacenter.id}"
 }
 resource "vsphere_folder" "folder" {
-  path = "${var.virtual_machine_template["folder"]}"
+  path = var.virtual_machine_template["folder"]
   type = "vm"
-  tags = ["${vsphere_tag.environment.id}",
-    "${vsphere_tag.region.id}",
+  tags = [vsphere_tag.environment.id,
+    vsphere_tag.region.id,
   ]
-  datacenter_id = "${data.vsphere_datacenter.template_datacenter.id}"
+  datacenter_id = data.vsphere_datacenter.template_datacenter.id
 }
 resource "vsphere_resource_pool" "vm_resource_pool" {
-  name = "${var.virtual_machine_kubernetes_node["resource_pool"]}"
-  tags = ["${vsphere_tag.environment.id}",
-    "${vsphere_tag.region.id}",
+  name = var.virtual_machine_kubernetes_node["resource_pool"]
+  tags = [vsphere_tag.environment.id,
+    vsphere_tag.region.id,
   ]
-  parent_resource_pool_id = "${data.vsphere_compute_cluster.vm_cluster.resource_pool_id}"
+  parent_resource_pool_id = data.vsphere_compute_cluster.vm_cluster.resource_pool_id
 }
 ##  Files and Scripts  ##
 data "template_file" "setup_cluster_access" {
@@ -88,7 +88,7 @@ data "template_file" "k8s_conf" {
 ##  Tag Category Info   ##
 #++++++++++++++++++++
 resource "vsphere_tag_category" "environment" {
-  name        = "${var.vsphere_tag_category}"
+  name        = var.vsphere_tag_category
   cardinality = "SINGLE"
   description = "Dev environment"
   associable_types = [
@@ -99,7 +99,7 @@ resource "vsphere_tag_category" "environment" {
   ]
 }
 resource "vsphere_tag_category" "region" {
-  name        = "${var.vsphere_region_catergory}"
+  name        = var.vsphere_region_catergory
   cardinality = "SINGLE"
   description = "Dev region"
   associable_types = [
@@ -110,7 +110,7 @@ resource "vsphere_tag_category" "region" {
   ]
 }
 resource "vsphere_tag_category" "master" {
-  name        = "${var.vsphere_m_catergory}"
+  name        = var.vsphere_m_catergory
   cardinality = "SINGLE"
   description = "Dev master node"
   associable_types = [
@@ -120,7 +120,7 @@ resource "vsphere_tag_category" "master" {
   ]
 }
 resource "vsphere_tag_category" "worker" {
-  name        = "${var.vsphere_w_catergory}"
+  name        = var.vsphere_w_catergory
   cardinality = "SINGLE"
   description = "Dev worker node"
   associable_types = [
@@ -134,23 +134,23 @@ resource "vsphere_tag_category" "worker" {
 ## Tags Info ##
 #+++++++++
 resource "vsphere_tag" "environment" {
-  name        = "${var.vsphere_tag_name}"
-  category_id = "${vsphere_tag_category.environment.id}"
+  name        = var.vsphere_tag_name
+  category_id = vsphere_tag_category.environment.id
   description = "Environment type"
 }
 resource "vsphere_tag" "region" {
-  name        = "${var.vsphere_region_name}"
-  category_id = "${vsphere_tag_category.region.id}"
+  name        = var.vsphere_region_name
+  category_id = vsphere_tag_category.region.id
   description = "Location of the cluster"
 }
 resource "vsphere_tag" "master" {
-  name        = "${var.vsphere_m_name}"
-  category_id = "${vsphere_tag_category.master.id}"
+  name        = var.vsphere_m_name
+  category_id = vsphere_tag_category.master.id
   description = "Role Assignment"
 }
 resource "vsphere_tag" "worker" {
-  name        = "${var.vsphere_w_name}"
-  category_id = "${vsphere_tag_category.worker.id}"
+  name        = var.vsphere_w_name
+  category_id = vsphere_tag_category.worker.id
   description = "Role Assignment"
 }
 

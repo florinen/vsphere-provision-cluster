@@ -5,9 +5,9 @@ resource "null_resource" "copy_kube_config" {
   } 
 }
 resource "null_resource" "cluster_access" {
-    depends_on = [ "null_resource.copy_kube_config" ]
+    depends_on = [ null_resource.copy_kube_config ]
   provisioner "local-exec" {
-    command = "${data.template_file.setup_cluster_access.rendered}"
+    command = data.template_file.setup_cluster_access.rendered
   }
 }
 

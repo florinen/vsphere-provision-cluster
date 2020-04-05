@@ -1,5 +1,5 @@
 variable "vsphere_connection" {
-  type        = "map"
+  type        = map(string)
   description = "Configuration details for connecting to vsphere"
 
   default = {
@@ -14,7 +14,7 @@ variable "vsphere_connection" {
 }
 
 variable "virtual_machine_template" {
-  type        = "map"
+  type        = map(string)
   description = "Configuration details for virtual machine template"
 
   default = {
@@ -36,7 +36,7 @@ variable "virtual_machine_template" {
 }
 
 variable "virtual_machine_kubernetes_controller" {
-  type        = "map"
+  type        = map(string)
   description = "Configuration details for kubernetes_controller virtual machine"
 
   default = {
@@ -76,7 +76,7 @@ variable "virtual_machine_kubernetes_controller" {
 }
 
 variable "virtual_machine_kubernetes_node" {
-  type        = "map"
+  type        = map(string)
   description = "Configuration details for kubernetes_controller virtual machine"
 
   default = {
@@ -128,7 +128,7 @@ variable "region" {}
 variable "env_name" {
   description = "Name of the file to be used in Kube folder on local machine"
   default     = ""       #change this if creating new envinronment 
-  type        = "string"
+  type        = string
 }
 
 variable "accept_key" {
@@ -158,6 +158,12 @@ variable "d_version" {
 variable "nfs_server" {
   description = "NFS share server"
 }
+variable "node_role" {
+  description = "Role name of the node"
+}
+
+
+
 
 ## Tagging Info
 variable "vsphere_tag_category" {
