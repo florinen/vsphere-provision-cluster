@@ -167,14 +167,3 @@ resource "null_resource" "kubeadm_join" {
     }
   }
 }
-resource "null_resource" "sleeping_subprocess" {
-  provisioner "local-exec" {
-      command = "sleep 15 & echo \"sleeping in PID $!\""
-  }
-}
-
-resource "null_resource" "add_node_roles" {
-  provisioner "local-exec" {
-    command = "kubectl label node "
-  } 
-}
