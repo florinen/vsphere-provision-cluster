@@ -1,8 +1,13 @@
  #!/bin/bash
+RESET=`tput sgr0`
 RED=`tput setaf 1`
 YELLOW=`tput setaf 2`
+GREEN=`tput setaf 3`
+BLUE=`tput setaf 4`
 MAGENTA=`tput setaf 5`
-RESET=`tput sgr0`
+CYAN=`tput setaf 6`
+WHITE=`tput setaf 7`
+
 
 DIR=$(pwd)
 DATAFILE="$DIR/$1"
