@@ -8,6 +8,7 @@ MAGENTA=`tput setaf 5`
 CYAN=`tput setaf 6`
 WHITE=`tput setaf 7`
 
+
 DIR=$(pwd)
 DATAFILE="$DIR/$1"
 
