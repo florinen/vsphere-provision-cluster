@@ -18,6 +18,6 @@ resource "null_resource" "remove_ssh_keys" {
   
   provisioner "local-exec" {
     when    = destroy
-    command = "rm $HOME/.ssh/id_rsa-$var.env_name*"
+    command = "rm $HOME/.ssh/id_rsa-${var.env_name}*"
   }
 }
