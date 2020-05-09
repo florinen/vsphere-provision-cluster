@@ -1,7 +1,7 @@
 ## Sleep Time is need it for the nodes to become Ready/NotReady otherwise manage_nodes may fail..!  
 
 resource "null_resource" "sleeping_subprocess" {
-  depends_on = [vsphere_virtual_machine.kubernetes_nodes]
+  depends_on = [null_resource.kubeadm_join]
   triggers = {
     cluster_instance_ids = "${join(",", vsphere_virtual_machine.kubernetes_nodes.*.id)}"
   }
@@ -11,7 +11,7 @@ resource "null_resource" "sleeping_subprocess" {
 }
 
 resource "null_resource" "manage_nodes" {
-  depends_on = [null_resource.sleeping_subprocess, vsphere_virtual_machine.kubernetes_nodes]
+  depends_on = [null_resource.sleeping_subprocess]
 
   triggers = {
     build_number = "${timestamp()}"
@@ -24,7 +24,9 @@ resource "null_resource" "manage_nodes" {
       GREEN=`tput setaf 2`
       MAGENTA=`tput setaf 5`
       RESET=`tput sgr0`
-      
+
+      source update.sh
+      reload
       NODE_ROLE=$(kubectl get nodes | grep none | awk '{print $1}')
       REMOVE_NODE=$(kubectl get nodes | grep NotReady | awk '{print $1}')
 
