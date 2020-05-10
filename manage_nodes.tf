@@ -25,8 +25,6 @@ resource "null_resource" "manage_nodes" {
       MAGENTA=`tput setaf 5`
       RESET=`tput sgr0`
 
-      source update.sh
-      reload
       NODE_ROLE=$(kubectl get nodes | grep none | awk '{print $1}')
       REMOVE_NODE=$(kubectl get nodes | grep NotReady | awk '{print $1}')
 
