@@ -1,3 +1,6 @@
+terraform {
+  required_version = "> 0.12.0"
+}
 provider "vsphere" {
   version              = "~> 1.13"
   user                 = "${var.vsphere_connection["vsphere_user"]}"
